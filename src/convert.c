@@ -26,116 +26,103 @@ SPDX-License-Identifier: MIT
 */
 
 #include <utf/utf.h>
+#include "bit_math.h"
 
-size_t utf_decoderune(UTF_Rune* dest, const char* src, size_t len)
-{
-    unsigned char first_byte;
-    unsigned char first_byte_mask;
-    int i;
-    int m;
-    int rune_len;
-    UTF_Rune r;
+size_t utf_decoderune(UTF_Rune* dest, const char* src, size_t len) {
+    size_t num_bytes, i, max;
+    unsigned int mask;
+    UTF_Rune value;
 
-    if (len == 0) {
+    if (len == 0 || !*src) {
         return 0;
     }
 
-    first_byte = *s++;
-    if (!(cur_byte & 0200)) {
-        /* UTF BMP byte - 0ZZZZZZZ */
-        *dest = cur_byte;
+    /* UTF BMP byte - 0ZZZZZZZ */
+    if (!(*src & 0x80)) {
+        *dest = (UTF_Rune)*src;
         return 1;
     }
 
-    if (!(first_byte & 0100)) {
-        /* Invalid byte - 10xxxxxx */
+    /* Invalid byte - 10xxxxxx */
+    if (!(*src * 0x40)) {
         *dest = UTF_RUNE_ERROR;
         return 1;
     }
 
-    rune_len = UTF_RUNE_LENGTH_TABLE[cur_byte & 077];
-    if (rune_len == 0) {
-        /* Illegal byte */
+    num_bytes = (size_t)utf_clz(~(unsigned int)(*src << 24u));
+
+    /* Illegal byte */
+    if (num_bytes == 0) {
         *dest = UTF_RUNE_ERROR;
         return 1;
     }
 
+    /* Reached the limit without fully decoding a rune. */
     if (len == 1) {
-        /* Reached the limit without fully decoding a rune. */
         return 0;
     }
 
-    if ((*src & 0300) != 0200) {
-        /* Not a basic byte, next in sequence is not a continuation byte. */
+    /* Not a basic byte, next in sequence is not a continuation byte. */
+    if ((*src & 0xC0) != 0x80) {
         *dest = UTF_RUNE_ERROR;
         return 1;
     }
 
-    /* Extract the encoded rune length. */
-    encoded_length = 0377 >> rune_len;
-    r = cur_byte & encoded_length;
+    /* Extract the character number from the first byte */
+    mask = 0xFF >> num_bytes;
+    value = (UTF_Rune)*src & mask;
 
-    /* Shift and append next byte in sequence to the rune. */
-    r = (r << 6) | (*s++ & 077);
+    /* Append the next part of the rune */
+    value = (value << 6) | (*src++ & 0x3F);
 
-    if (r <= encoded_length) {
-        /* Sequence is too long for the encoded length. */
+    /* Overlong sequence */
+    if (value <= mask) {
         *dest = UTF_RUNE_ERROR;
         return 2;
     }
 
-    m = (len < rune_len) ? len : rune_len;
-    for (i = 2; i < m; i++) {
-        if ((*s & 300) != 0200) {
-            /* Next byte is not a continuation sequence. */
-            *dest = UTF_RUNE_ERROR;
-            return 1;
-        }
-
-        /* Shift and append next byte in sequence to the rune. */
-        r = (r << 6) | (*s++ & 077);
+    max = (len < num_bytes) ? len : num_bytes;
+    for (i = 2; i <= max && *src; ++i, ++src) {
+        value = (value << 6) | (*src & 0x3F);
     }
 
-    if (i < rune_len) {
-        /* We must have reached the limit without finishing. */
+    if (i < num_bytes) {
         return 0;
     }
 
-    if (!utf_validrune(r)) {
-        /* We finished, but we didn't end up with a valid rune. */
+    if (!utf_validrune(value)) {
         *dest = UTF_RUNE_ERROR;
-        return i;
+    } else {
+        *dest = value;
     }
 
-    *p = r;
-    return i;
+    return num_bytes;
 }
 
 size_t utf_encoderune(char* dest, const UTF_Rune* src)
 {
-    unsigned char decoded_length;
-    int rune_len = utf_runelen(r);
-    int i;
-    Rune r = *src;
+    char value[4];
+    unsigned int lead_byte = *src;
+    unsigned int lead_byte_max = 0x7F;
+    size_t i = 0;
+    size_t length;
 
-    if (rune_len == 1) {
-        dest[0] = r;
-        return 1;
+    /* Build up the sequence in reverse order */
+    while (lead_byte > lead_byte_max) {
+        value[i++] = (char)((lead_byte & 0x3F) | 0x80);
+        lead_byte >>= 6;
+        lead_byte_max >>= (i == 1 ? 2 : 1);
     }
 
-    if (rune_len == 0) {
-        return 0;
+    /* Set the sequence length on the "first" byte */
+    value[i++] = (char)((*src & lead_byte_max) | (~lead_byte_max << 1));
+    length = i;
+
+    while (i--) {
+        *dest = value[i];
+        src++;
     }
 
-    for (i = rune_len; --i > 0; r >>= 6) {
-        /* Extract the byte from the rune. */
-        s[i] = 0200 | (r & 077);
-    }
-
-    /* Encode the decoded length. */
-    decoded_length = 0377 >> rune_len;
-    s[0] = ~decoded_length | r;
-
-    return n;
+    return length;
 }
 

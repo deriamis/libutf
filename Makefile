@@ -19,8 +19,8 @@ EXE            := $(NAME)
 
 all: $(EXE) $(SHARED_LIB) $(STATIC_LIB)
 
-debug:  CFLAGS += -g -g3 -ggdb
-debug: LDFLAGS += -g -g3 -ggdb
+debug: CFLAGS += -g -g3 -ggdb
+debug: LDFLAGS += -g
 debug: rebuild
 
 -include $(DEPS)
@@ -30,7 +30,7 @@ $(OBJDIR)/%.o: $(SRCDIR)/%.c
 
 ifneq ($(filter shared,$(LIBRARY_TYPE)),)
 $(SHARED_LIB): $(OBJS)
-	$(CC) $(CPPFLAGS) $(CFLAGS) $(LIBFLAGS) -shared -Wl,-soname,$(SHARED_LIB) -o $@ $(OBJS) $(LDFLAGS)
+	$(LD) $(LDFLAGS) -shared -soname $(SHARED_LIB) -o $@ $(OBJS)
 clean-$(SHARED_LIB):
 	rm -f $(SHARED_LIB)
 else
@@ -50,7 +50,7 @@ endif
 
 ifneq ($(LIBRARY_TYPE),$(filter $(LIBRARY_TYPE),shared static))
 $(EXE):	$(OBJS)
-	$(CC) $(CPPFLAGS) $(CFLAGS) $(LIBFLAGS) -o $@ $(OBJS) $(LDFLAGS)
+	$(LD) $(LDFLAGS) --export-dynamic -o $@ $(OBJS)
 clean-$(EXE):
 	rm -f $(EXE)
 else
@@ -76,4 +76,8 @@ distclean: clean
 
 rebuild: distclean all
 
-.PHONY: all clean distclean re
+test:
+
+check: test
+
+.PHONY: all clean distclean rebuild test check
