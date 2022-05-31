@@ -1,12 +1,20 @@
 include config.mk
 
 SRCS           :=
+TEST_SRCS      :=
 SUBDIRS        :=
+TESTS          :=
 
 include $(SRCDIR)/module.mk
+include $(TESTDIR)/module.mk
 
 OBJS           := $(addprefix $(OBJDIR)/,$(SRCS:.c=.o))
+TEST_OBJS      := $(addprefix $(OBJDIR)/$(TESTDIR)/,$(TEST_SRCS:.c=.o))
+TEST_BINS      := $(addprefix $(OBJDIR)/$(TESTDIR)/,$(TESTS))
+
 SRCS           := $(addprefix $(SRCDIR)/,$(SRCS))
+TEST_SRCS      := $(addprefix $(TESTDIR)/,$(TEST_SRCS))
+
 DEPS           := $(OBJS:.o=.d)
 TMPS           := $(OBJS) $(OBJS:.o=.d)
 
@@ -23,9 +31,20 @@ debug: CFLAGS += -g -g3 -ggdb
 debug: LDFLAGS += -g
 debug: rebuild
 
+tests: DEPS := $(TEST_OBJS:.o=.d)
+tests: all $(TEST_BINS)
+
 -include $(DEPS)
 
 $(OBJDIR)/%.o: $(SRCDIR)/%.c
+	$(COMPILE.c) $(OUTPUT_OPTION) $<
+
+$(OBJDIR)/$(TESTDIR)/unity.o: CPPFLAGS += -I$(UNITY_DIR)
+$(OBJDIR)/$(TESTDIR)/unity.o: $(UNITY_DIR)/unity.c | $(OBJDIR)/$(TESTDIR)
+	$(COMPILE.c) $(OUTPUT_OPTION) $<
+
+$(OBJDIR)/$(TESTDIR)/%.o: CPPFLAGS += -I$(UNITY_DIR)
+$(OBJDIR)/$(TESTDIR)/%.o: $(TESTDIR)/%.c
 	$(COMPILE.c) $(OUTPUT_OPTION) $<
 
 ifneq ($(filter shared,$(LIBRARY_TYPE)),)
@@ -50,13 +69,17 @@ endif
 
 ifneq ($(LIBRARY_TYPE),$(filter $(LIBRARY_TYPE),shared static))
 $(EXE):	$(OBJS)
-	$(LD) $(LDFLAGS) --export-dynamic -o $@ $(OBJS)
+	$(CC) $(CFLAGS) $(LINKFLAGS) -rdynamic -o $@ $(OBJS)
 clean-$(EXE):
 	rm -f $(EXE)
 else
 $(EXE):
 clean-$(EXE):
 endif
+
+$(TEST_BINS): LINKFLAGS += -L. -l$(NAME)
+$(TEST_BINS): $(TEST_OBJS)
+	$(CC) $(CFLAGS) $(LINKFLAGS) -rdynamic -o $@ $< $(OBJDIR)/$(TESTDIR)/unity.o
 
 $(OBJS): | $(OBJDIR)
 
@@ -65,6 +88,12 @@ $(OBJDIR):
 	@for dir in $(SUBDIRS); do    \
 		mkdir -p $(OBJDIR)/$$dir; \
 	done
+
+$(TEST_OBJS): $(OBJDIR)/$(TESTDIR)/unity.o
+$(TEST_OBJS): | $(OBJDIR)/$(TESTDIR)
+
+$(OBJDIR)/$(TESTDIR): $(OBJDIR)
+	@mkdir -p $(OBJDIR)/$(TESTDIR)
 
 mostlyclean:
 	rm -f $(TMPS)
@@ -76,8 +105,6 @@ distclean: clean
 
 rebuild: distclean all
 
-test:
+check: tests
 
-check: test
-
-.PHONY: all clean distclean rebuild test check
+.PHONY: all clean distclean rebuild tests check
