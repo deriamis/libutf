@@ -1,0 +1,18 @@
+{
+   unterminated_string_test1
+   Memcheck:Addr1
+   fun:utf_decoderune_r
+   fun:parametrized_decode
+   fun:test_decode_boundary_start_last_missing
+   fun:UnityDefaultTestRun
+   fun:main
+}
+{
+   unterminated_string_test2
+   Memcheck:Addr1
+   fun:utf_decoderune_r
+   fun:parametrized_decode
+   fun:test_decode_boundary_end_last_missing
+   fun:UnityDefaultTestRun
+   fun:main
+}

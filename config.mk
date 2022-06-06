@@ -6,7 +6,7 @@ LIBRARY_TYPE   := shared static
 SRCDIR         := src
 OBJDIR         := build
 TESTDIR        := test
-UNITY_DIR      := third_party/Unity/src
+EXT_SRCDIR     := third_party
 
 CC             := clang
 LD             := lld
@@ -38,8 +38,7 @@ CPPFLAGS       := -std=c89                               \
                   -D_FORTIFY_SOURCE=2                    \
 				  $(INCFLAGS)
 
-CFLAGS         := -O3                                    \
-                  -Wall                                  \
+CFLAGS         := -Wall                                  \
                   -Wextra                                \
                   -Wcast-align                           \
                   -Wunused                               \
@@ -86,3 +85,4 @@ LDFLAGS        := --no-as-needed                         \
                   -z defs                                \
     	          $(LIBFLAGS)                            \
 				  $(EXTRA_LIBFLAGS)
+

@@ -1,4 +1,3 @@
-
 /*
 MIT License
 
@@ -26,20 +25,54 @@ SPDX-FileCopyrightText: 2020 Ryan Egesdahl
 SPDX-License-Identifier: MIT
 */
 
-#include "unity.h"
+#include <string.h>
+#include <stdlib.h>
+
 #include <utf/utf.h>
+#include <utf/platform.h>
 
-void setUp(void) {}
-void tearDown(void) {}
+#include "state.h"
 
-void test_decoderune_should_succeed(void)
+utf_state_p utf_state_alloc(void)
 {
-    TEST_ASSERT_EQUAL(1, 1);
+    utf_state_p state = 0;
+
+    state = (utf_state_p)calloc(1, sizeof(utf_state_s));
+    if (!state) {
+        abort();
+    }
+
+    return state;
 }
 
-int main(void)
+utf_state_p utf_state_new(void)
 {
-    UNITY_BEGIN();
-    RUN_TEST(test_decoderune_should_succeed);
-    return UNITY_END();
+    utf_state_p state = utf_state_alloc();
+    return state;
 }
+
+void utf_state_destroy(utf_state_p state)
+{
+    free(state);
+}
+
+void utf_state_clear(utf_state_p state)
+{
+    memset(state, 0, sizeof(utf_state_s));
+}
+
+int utf_state_get_error(utf_state_p state)
+{
+    return state->errno;
+}
+
+bool utf_state_has_error(utf_state_p state)
+{
+    return (utf_state_get_error(state) > 0) ? true : false;
+}
+
+int utf_state_bytes_processed(utf_state_p state)
+{
+    return state->count;
+}
+

@@ -25,38 +25,12 @@ SPDX-FileCopyrightText: 2020 Ryan Egesdahl
 SPDX-License-Identifier: MIT
 */
 
-#ifndef PLATFORM_H
-#define PLATFORM_H
+#ifndef UTF_ERROR_H
+#define UTF_ERROR_H
 
-#include <limits.h>
+#define UTF_STRERROR_BUFSIZE 128
 
-#if defined(__STDC__)
-#  if defined(__STDC_VERSION__) && __STDC_VERSION__ >= 199901L
-#    include <stdint.h>
-#    include <stdbool.h>
-#  else
-#    pragma clang diagnostic push
-#    pragma clang diagnostic ignored "-Wmissing-declarations"
-#    include "stdbool.h"
-#    pragma clang diagnostic pop
-#    define restrict
-#    define inline
-#    define UINT32_C(c) c ## U
+void utf_set_error(int code);
 
-typedef unsigned long size_t;
-#    if defined(_MSC_VER) || defined(__x86_64__) || defined(__aarch64__) || defined(__linux__)
-/* On these architectures, an int is guaranteed to be 32 bits. */
-typedef unsigned int uint_least32_t;
-#    else
-/* Everywhere else, we fall back to the standard. */
-typedef unsigned long int uint_least32_t;
-#    endif
-# endif /* defined(__STDC_VERSION__) && __STDC_VERSION__ >= 199901L */
-#endif /* defined(__STDC__) */
-
-#define TYPE_WIDTH(t) (sizeof (t) * CHAR_BIT)
-#define INT_BITS_STRLEN_BOUND(b) (((b) * 146 + 484) / 485)
-#define INT_STRLEN_BOUND(t) (INT_BITS_STRLEN_BOUND (TYPE_WIDTH (t)))
-
-#endif /* PLATFORM_H */
+#endif /* UTF_ERROR_H */
 
