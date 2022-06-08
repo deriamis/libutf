@@ -40,6 +40,7 @@ struct utf_state_s {
         unsigned char bytes[6];
     } value;
     int errno;
+    bool is_big_endian;
 };
 
 #endif /* UTF_STATE_H */

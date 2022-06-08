@@ -40,7 +40,6 @@ int utf_decoderune_r(utf_rune* dest restrict, char* src restrict, int len, utf_s
     int num_bytes;
     int j, max;
     int i = 0;
-    bool big_endian = false;
     utf_rune dummy, temp;
 
     assert(state);
@@ -68,12 +67,6 @@ int utf_decoderune_r(utf_rune* dest restrict, char* src restrict, int len, utf_s
         next_byte = state->value.bytes[0];
     }
 
-    if (len == 1) {
-        /* Reached the limit without fully decoding a rune. */
-        state->errno = UTF_ETRUNC;
-        return i;
-    }
-
     if (state->count < 4) {
         if (next_byte == '\0') {
             state->count = 0;
@@ -96,7 +89,7 @@ int utf_decoderune_r(utf_rune* dest restrict, char* src restrict, int len, utf_s
 
         if (next_byte == 0xFE || next_byte == 0xFF) {
             if (next_byte == 0xFE) {
-                big_endian = true;
+                state->is_big_endian = true;
             }
 
             next_byte = (unsigned char)*src++;
@@ -109,7 +102,7 @@ int utf_decoderune_r(utf_rune* dest restrict, char* src restrict, int len, utf_s
             i++;
             state->value.bytes[0] = next_byte;
 
-            if (big_endian && next_byte != 0xFF) {
+            if (state->is_big_endian && next_byte != 0xFF) {
                 for (; i < len && *src && next_byte != 0xFE; i++) {
                     next_byte = (unsigned char)*src++;
                     i++;
@@ -119,7 +112,7 @@ int utf_decoderune_r(utf_rune* dest restrict, char* src restrict, int len, utf_s
                 return i;
             }
 
-            if (!big_endian && next_byte != 0xFE) {
+            if (!state->is_big_endian && next_byte != 0xFE) {
                 for (; i < len && *src && next_byte != 0xFE; i++) {
                     next_byte = (unsigned char)*src++;
                     i++;
@@ -133,6 +126,12 @@ int utf_decoderune_r(utf_rune* dest restrict, char* src restrict, int len, utf_s
             i++;
             state->value.bytes[0] = next_byte;
         }
+    }
+
+    if (len == 1) {
+        /* Reached the limit without fully decoding a rune. */
+        state->errno = UTF_ETRUNC;
+        return i;
     }
 
     num_bytes = utf_clz(~(unsigned int)(next_byte << 24u));
@@ -202,7 +201,7 @@ DECODE_LOOP_EXIT:
         return i;
     }
 
-    if (big_endian) {
+    if (!UTF_BIG_ENDIAN && state->is_big_endian) {
         next_byte = state->value.bytes[1];
         state->value.bytes[1] = state->value.bytes[0];
         state->value.bytes[0] = next_byte;

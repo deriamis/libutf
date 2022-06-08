@@ -69,12 +69,12 @@ int utf_strerror_r(int errnum, char* buf, size_t buflen)
         return EINVAL;
     }
 
-    error_message_len = strlen(utf_error_messages[errnum - 1]);
+    error_message_len = strlen(utf_error_messages[errnum]);
     if (error_message_len + 1 > buflen) {
         return ERANGE;
     }
 
-    if (!strncpy(buf, utf_error_messages[errnum - 1], error_message_len + 1)){
+    if (!strncpy(buf, utf_error_messages[errnum], error_message_len + 1)){
         return ENOMEM;
     }
 

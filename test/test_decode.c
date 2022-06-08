@@ -36,7 +36,7 @@ SPDX-License-Identifier: MIT
 
 void parametrized_decode(const TestParams* params)
 {
-    int i, j, n;
+    int i, j, n, max;
     int error_count;
     char *p = 0;
     utf_rune unknown;
@@ -51,8 +51,11 @@ void parametrized_decode(const TestParams* params)
         for (j = 0; j < params->unknowns_sz[i]; j += n) {
             n = 0;
 
+            max = (params->unknowns_sz[i] < UTF_BYTES_MAX) ?
+                params->unknowns_sz[i] : UTF_BYTES_MAX;
+
             p = &params->unknowns[i * params->num_tests + j];
-            n = utf_decoderune_r(&unknown, p, UTF_BYTES_MAX, state);
+            n = utf_decoderune_r(&unknown, p, max, state);
 
 if (utf_state_has_error(state)) {
                 error_count++;
@@ -162,6 +165,8 @@ void test_decode_boundary_end(void)
         0,
     };
 
+    int unknowns_sz[NUM_TESTS] = { 1, 2, 3, 4, 5, 6 };
+
     char unknowns[NUM_TESTS * NUM_TESTS] = {
         '\x7f', '\x00', '\x00', '\x00', '\x00', '\x00', /* U-0000007F */
         '\xdf', '\xbf', '\x00', '\x00', '\x00', '\x00', /* U-000007FF */
@@ -170,8 +175,6 @@ void test_decode_boundary_end(void)
         '\xfb', '\xbf', '\xbf', '\xbf', '\xbf', '\x00', /* U-03FFFFFF */
         '\xfd', '\xbf', '\xbf', '\xbf', '\xbf', '\xbf'  /* U-7FFFFFFF */
     };
-
-    int unknowns_sz[NUM_TESTS] = { 1, 2, 3, 4, 5, 6 };
 
     int error_counts[NUM_TESTS] = { 0, 0, 1, 1, 1, 1 };
 

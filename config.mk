@@ -8,6 +8,7 @@ OBJDIR         := build
 TESTDIR        := test
 EXT_SRCDIR     := third_party
 
+SHELL          := /bin/bash
 CC             := clang
 LD             := lld
 

@@ -58,5 +58,25 @@ typedef unsigned long int uint_least32_t;
 #define INT_BITS_STRLEN_BOUND(b) (((b) * 146 + 484) / 485)
 #define INT_STRLEN_BOUND(t) (INT_BITS_STRLEN_BOUND (TYPE_WIDTH (t)))
 
+/* Determine the byte order of the system. */
+#ifdef UTF_BIG_ENDIAN
+#elif defined(BYTE_ORDER) && defined(BIG_ENDIAN)
+#   define UTF_BIG_ENDIAN (BYTE_ORDER == BIG_ENDIAN)
+#elif defined(__BYTE_ORDER__) && defined(__ORDER_BIG_ENDIAN__)
+#   define UTF_BIG_ENDIAN (__BYTE_ORDER__ == __ORDER_BIG_ENDIAN__)
+#elif defined(__BIG_ENDIAN__) || defined(_BIG_ENDIAN)
+#   define UTF_BIG_ENDIAN 1
+#elif defined(__LITTLE_ENDIAN__) || defined(_LITTLE_ENDIAN)
+#   define UTF_BIG_ENDIAN 0
+#elif defined(__s390__) || defined(__s390x__)
+#   define UTF_BIG_ENDIAN 1
+#elif defined(_PA_RISC1_0) || defined(_PA_RISC1_1) || defined(_PA_RISC2_0)
+#   define UTF_BIG_ENDIAN 1
+#elif defined(sparc) || defined(__sparc) || defined(__sparc__)
+#   define UTF_BIG_ENDIAN 1
+#else
+#   define UTF_BIG_ENDIAN 0
+#endif
+
 #endif /* PLATFORM_H */
 
