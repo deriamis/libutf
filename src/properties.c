@@ -110,4 +110,3 @@ int utf_runelen(uint_least32_t w)
 
     return -1;
 }
-

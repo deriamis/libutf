@@ -39,38 +39,32 @@ static int utf_count_leading_zeros(unsigned int x)
         if (x >= (1U << 24)) {
             if (x >= (1 << 28)) {
                 n = 28U;
-            }
-            else {
+            } else {
                 n = 24U;
             }
-        }
-        else {
+        } else {
             if (x >= (1U << 20)) {
                 n = 20U;
-            }
-            else {
+            } else {
                 n = 16U;
             }
         }
-    }
-    else {
+    } else {
         if (x >= (1U << 8)) {
             if (x >= (1U << 12)) {
                 n = 12U;
-            }
-            else {
+            } else {
                 n = 8U;
             }
-        }
-        else {
+        } else {
             if (x >= (1U << 4)) {
                 n = 4U;
-            }
-            else {
+            } else {
                 n = 0U;
             }
         }
     }
+
     return (int)(clz_lookup[x >> n] - n);
 }
 

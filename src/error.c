@@ -98,4 +98,3 @@ char* utf_strerror(int errnum)
 
     return buf;
 }
-

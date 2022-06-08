@@ -37,7 +37,7 @@ recheck: distclean check
 
 check: tests
 	@for test_bin in $(TEST_BINS); do \
-		$$test_bin;                   \
+		$(VALGRIND_EXEC) $$test_bin;  \
 	done
 
 debug: CFLAGS += -O1 -g -g3 -ggdb

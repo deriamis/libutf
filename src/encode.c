@@ -140,4 +140,3 @@ int utf_encoderune(char* dest restrict, utf_rune* src restrict)
 
     return bytes_processed;
 }
-

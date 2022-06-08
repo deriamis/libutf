@@ -11,6 +11,7 @@ EXT_SRCDIR     := third_party
 SHELL          := /bin/bash
 CC             := clang
 LD             := lld
+VALGRIND       :=
 
 INCLUDES       := include
 TARGET_MACHINE := x86_64-linux-gnu

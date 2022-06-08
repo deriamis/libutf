@@ -19,6 +19,14 @@ STATIC_LIB     := lib$(NAME).a
 SHARED_LIB     := lib$(NAME).so.$(ABI_VERSION)
 EXE            := $(NAME)$(EXEEXT)
 
+ifneq (, $(shell which $(VALGRIND)))
+VALGRIND_EXEC  := valgrind \
+				      --leak-check=full --show-leak-kinds=all \
+					  --show-reachable=yes --error-limit=no --track-origins=yes
+else
+VALGRIND_EXEC  :=
+endif
+
 all: $(EXE) $(SHARED_LIB) $(STATIC_LIB)
 
 -include $(TESTDIR)/module.mk

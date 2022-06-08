@@ -75,4 +75,3 @@ int utf_state_bytes_processed(utf_state_p state)
 {
     return state->count;
 }
-

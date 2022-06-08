@@ -25,17 +25,18 @@ SPDX-FileCopyrightText: 2020 Ryan Egesdahl
 SPDX-License-Identifier: MIT
 */
 
-#include <string.h>
 #include <assert.h>
+#include <string.h>
 
-#include <utf/utf.h>
 #include <utf/platform.h>
+#include <utf/utf.h>
 
 #include "bit_math.h"
-#include "state.h"
 #include "error.h"
+#include "state.h"
 
-int utf_decoderune_r(utf_rune* dest restrict, char* src restrict, int len, utf_state_p state) {
+int utf_decoderune_r(utf_rune* dest restrict, char* src restrict, int len, utf_state_p state)
+{
     unsigned char next_byte;
     int num_bytes;
     int j, max;
@@ -165,8 +166,8 @@ int utf_decoderune_r(utf_rune* dest restrict, char* src restrict, int len, utf_s
                         goto DECODE_LOOP_EXIT;
                     }
                 case 4:
-                    if ((state->value.bytes[0] == 0xF0 && next_byte < 0x90)
-                            || (state->value.bytes[0] == 0xF4 && next_byte >= 0x90)) {
+                    if ((state->value.bytes[0] == 0xF0 && next_byte < 0x90) ||
+                        (state->value.bytes[0] == 0xF4 && next_byte >= 0x90)) {
                         state->errno = UTF_ELEN;
                         goto DECODE_LOOP_EXIT;
                     }
@@ -273,7 +274,8 @@ DECODE_LOOP_EXIT:
     return i;
 }
 
-int utf_decoderune(utf_rune* dest restrict, char* src restrict, int len) {
+int utf_decoderune(utf_rune* dest restrict, char* src restrict, int len)
+{
     utf_state_p state = utf_state_new();
     int bytes_processed = 0;
 
@@ -283,4 +285,3 @@ int utf_decoderune(utf_rune* dest restrict, char* src restrict, int len) {
 
     return bytes_processed;
 }
-

@@ -57,7 +57,7 @@ void parametrized_decode(const TestParams* params)
             p = &params->unknowns[i * params->num_tests + j];
             n = utf_decoderune_r(&unknown, p, max, state);
 
-if (utf_state_has_error(state)) {
+        if (utf_state_has_error(state)) {
                 error_count++;
                 utf_state_clear(state);
             }
@@ -906,4 +906,3 @@ int main(void)
     }
     return UNITY_END();
 }
-
