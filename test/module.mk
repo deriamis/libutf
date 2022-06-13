@@ -3,7 +3,7 @@ CUR_LIST_DIR     := $(patsubst %/,%,$(dir $(lastword $(MAKEFILE_LIST))))
 -include $(EXT_SRCDIR)/unity.mk
 LIST_DIR     := $(CUR_LIST_DIR)
 
-TEST_SRCS    := test_decode.c
+TEST_SRCS    := test_decode.c test_properties.c
 
 TEST_SRCS    := $(addprefix $(LIST_DIR)/,$(TEST_SRCS))
 TEST_OBJS    := $(addprefix $(OBJDIR)/,$(TEST_SRCS:.c=.o))
@@ -14,17 +14,23 @@ TEST_DEPS    := $(addprefix $(LIST_DIR)/,util.c)
 TESTDEP_OBJS := $(addprefix $(OBJDIR)/,$(TEST_DEPS:.c=.o))
 
 $(TEST_OBJDIR): | $(OBJDIR)
-	@mkdir -p $(OBJDIR)/$(TESTDIR)
+	@mkdir $(TEST_OBJDIR)
 
-$(TEST_OBJS): CPPFLAGS += -I$(UNITY_DIR)
-$(TEST_OBJS): $(TEST_SRCS) | $(TEST_OBJDIR)
-	$(COMPILE.c) -fPIC $(OUTPUT_OPTION) $<
+$(TEST_OBJDIR)/util.o: $(TESTDIR)/util.c | $(TEST_OBJDIR)
+	$(COMPILE.c) -fPIC $(OUTPUT_OPTION) $^
 
-$(TESTDEP_OBJS): $(TEST_DEPS) | $(TEST_OBJDIR)
-	$(COMPILE.c) -fPIC $(OUTPUT_OPTION) $<
+$(TEST_OBJDIR)/%.o: CPPFLAGS += -I$(UNITY_DIR)
+$(TEST_OBJDIR)/%.o: $(TESTDIR)/%.c | $(TEST_OBJDIR)
+	$(COMPILE.c) -fPIC $(OUTPUT_OPTION) $^
 
 $(TEST_BINS): LINKFLAGS += -L. -l$(NAME)
-$(TEST_BINS): $(TEST_OBJS) | $(TESTDEP_OBJS) $(UNITY_OBJS)
+$(TEST_BINS): $(TESTDEP_OBJS) $(UNITY_OBJS) | $(TEST_OBJDIR)
+
+$(TEST_OBJDIR)/test_decode: $(TEST_OBJDIR)/test_decode.o
+	$(CC) $(CFLAGS) $(LINKFLAGS) -pie -rdynamic -o $@ $< \
+		$(TESTDEP_OBJS) $(UNITY_OBJS)
+
+$(TEST_OBJDIR)/test_properties: $(TEST_OBJDIR)/test_properties.o
 	$(CC) $(CFLAGS) $(LINKFLAGS) -pie -rdynamic -o $@ $< \
 		$(TESTDEP_OBJS) $(UNITY_OBJS)
 

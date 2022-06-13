@@ -1,3 +1,4 @@
+/*
 MIT License
 
 Copyright (c) 2022 Ryan Egesdahl
@@ -22,3 +23,27 @@ SOFTWARE.
 
 SPDX-FileCopyrightText: 2020 Ryan Egesdahl
 SPDX-License-Identifier: MIT
+*/
+
+#include <utf/utf.h>
+
+#include "unity.h"
+
+void setUp(void) {}
+
+void tearDown(void) {}
+
+void test_isalpha(void)
+{
+    TEST_ASSERT_TRUE(utf_isalpha((utf_rune)65));  /* A */
+    TEST_ASSERT_FALSE(utf_isalpha((utf_rune)48)); /* 0 */
+}
+
+int main(void)
+{
+    UNITY_BEGIN();
+    if (TEST_PROTECT()) {
+        RUN_TEST(test_isalpha);
+    }
+    return UNITY_END();
+}

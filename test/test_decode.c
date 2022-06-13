@@ -30,7 +30,6 @@ SPDX-License-Identifier: MIT
 #include "unity.h"
 #include "util.h"
 
-#include <stdio.h>
 #include <string.h>
 #include <stdlib.h>
 
@@ -91,9 +90,6 @@ void test_decode_kosme(void)
 
     for (i = 0; *kosme != 0; i++, kosme += n) {
         n = utf_decoderune(&rbuf[i], kosme, UTF_BYTES_MAX);
-        if (utf_errno) {
-            printf("ERROR: %s\n", utf_strerror(utf_errno));
-        }
         if (n == 0) {
             break;
         }

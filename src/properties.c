@@ -25,8 +25,12 @@ SPDX-FileCopyrightText: 2020 Ryan Egesdahl
 SPDX-License-Identifier: MIT
 */
 
+#include <assert.h>
+#include <stdlib.h>
+
 #include <utf/utf.h>
-#include <stdio.h>
+
+#include "rune_types.h"
 
 #pragma clang diagnostic ignored "-Wc99-extensions"
 
@@ -109,4 +113,32 @@ int utf_runelen(uint_least32_t w)
     }
 
     return -1;
+}
+
+int rune_cmp(const void* a, const void* b)
+{
+    utf_rune* rune_a = (utf_rune*)a;
+    utf_rune* rune_b = (utf_rune*)b;
+
+    assert(rune_a);
+    assert(rune_b);
+
+    return (int)(*rune_a - *rune_b);
+}
+
+bool utf_isalpha(utf_rune r)
+{
+    static const size_t num_runes = sizeof(utf_alphabetic) / sizeof(utf_rune);
+    utf_rune* match = (utf_rune*)bsearch(
+            &r,
+            utf_alphabetic,
+            num_runes,
+            sizeof(utf_rune),
+            rune_cmp);
+
+    if (match && *match == r) {
+        return true;
+    }
+
+    return false;
 }
