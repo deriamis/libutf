@@ -26,11 +26,11 @@ $(TEST_OBJDIR)/%.o: $(TESTDIR)/%.c | $(TEST_OBJDIR)
 $(TEST_BINS): LINKFLAGS += -L. -l$(NAME)
 $(TEST_BINS): $(TESTDEP_OBJS) $(UNITY_OBJS) | $(TEST_OBJDIR)
 
-$(TEST_OBJDIR)/test_decode: $(TEST_OBJDIR)/test_decode.o
+$(TEST_OBJDIR)/test_decode$(EXEEXT): $(TEST_OBJDIR)/test_decode.o
 	$(CC) $(CFLAGS) $(LINKFLAGS) -pie -rdynamic -o $@ $< \
 		$(TESTDEP_OBJS) $(UNITY_OBJS)
 
-$(TEST_OBJDIR)/test_properties: $(TEST_OBJDIR)/test_properties.o
+$(TEST_OBJDIR)/test_properties$(EXEEXT): $(TEST_OBJDIR)/test_properties.o
 	$(CC) $(CFLAGS) $(LINKFLAGS) -pie -rdynamic -o $@ $< \
 		$(TESTDEP_OBJS) $(UNITY_OBJS)
 

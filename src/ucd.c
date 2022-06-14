@@ -29,7 +29,7 @@ SPDX-License-Identifier: MIT
 
 #include <utf/utf.h>
 
-#include "rune_types.h"
+#include "ucd.h"
 
 const utf_rune utf_alphabetic[131756] = {
     65, 66, 67, 68, 69, 70, 71, 72, 73, 74, 

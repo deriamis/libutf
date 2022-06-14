@@ -30,7 +30,7 @@ SPDX-License-Identifier: MIT
 
 #include <utf/utf.h>
 
-#include "rune_types.h"
+#include "ucd.h"
 
 #pragma clang diagnostic ignored "-Wc99-extensions"
 
