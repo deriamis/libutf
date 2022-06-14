@@ -65,21 +65,12 @@ extern "C" {
 
 
 /*
- * Global decoder/encoder state error code
- * */
-extern int utf_errno;
-
-
-/*
  * Decoder/Encoder state
- * */
+ */
+
+extern int utf_errno;
 typedef struct utf_state_s utf_state_s;
 typedef struct utf_state_s* utf_state_p;
-
-
-/*
- * Decoder/Encoder state functions
- */
 
 /* Return a newly-constructed state struct for use in reentrant functions. */
 UTF_API utf_state_p utf_state_new(void);
@@ -102,7 +93,7 @@ UTF_API int utf_state_bytes_processed(utf_state_p state);
 
 /*
  * Rune property functions
-*/
+ */
 
 /* Return whether w is the start of a surrogate pair sequence. */
 UTF_API bool utf_is_pair_start(uint_least32_t w);
@@ -137,40 +128,7 @@ UTF_API int utf_runelen(uint_least32_t w);
 UTF runes. */
 UTF_API int utf_runenlen(const char* s, size_t len);
 
-
-/*
- * Conversion functions
-*/
-
-/* Copy from src to dest one rune at a time. */
-UTF_API int utf_mbsrtoufs(utf_rune* dest, const char* src);
-
-/* Copy up to n runes from src to dest one rune at a time. */
-UTF_API int utf_mbsnrtoufs(utf_rune* dest, const char* src, size_t n);
-
-/* Copy from src to dest one byte at a time. */
-UTF_API int utf_utfsrtombs(char* dest, const utf_rune* src);
-
-/* Copy up to n bytes from src to dest one byte at a time. */
-UTF_API int utf_utfsnrtombs(char* dest, const utf_rune* src, size_t n);
-
-/* Convert a single word to its corresponding UTF rune. */
-UTF_API int utf_decoderune_r(utf_rune* dest restrict, char* src restrict,
-                             int len, utf_state_p state);
-UTF_API int utf_decoderune(utf_rune* dest restrict, char* src restrict,
-                           int len);
-
-/* Convert a single rune to its corresponding word. */
-UTF_API int utf_encoderune_r(char* dest restrict, utf_rune* src restrict,
-                             utf_state_p state);
-UTF_API int utf_encoderune(char* dest restrict, utf_rune* src restrict);
-
-
-/*
- * Single-rune functions
-*/
-
-/* Return whether r is either a number or alpha. */
+/* Return whether r is either a digit or alphabetic. */
 UTF_API bool utf_isalnum(utf_rune r);
 
 /* Return whether r is printable but is neither a blank or a graphic. */
@@ -181,6 +139,12 @@ UTF_API bool utf_iscntrl(utf_rune r);
 
 /* Return whether r is a numeric digit. */
 UTF_API bool utf_isdigit(utf_rune r);
+
+/* Return whether r is a number. */
+UTF_API bool utf_isnumber(utf_rune r);
+
+/* Return whether r is an integer. */
+UTF_API bool utf_isinteger(utf_rune r);
 
 /* Return whether r is a graphic. */
 UTF_API bool utf_isgraph(utf_rune r);
@@ -203,14 +167,76 @@ UTF_API bool utf_isspace(utf_rune r);
 /* Return whether r is an upper-case letter. */
 UTF_API bool utf_isupper(utf_rune r);
 
+/* Return whether r is a title-case letter. */
+UTF_API bool utf_istitle(utf_rune r);
+
+/* Return whether r is a symbol. */
+UTF_API bool utf_issymbol(utf_rune r);
+
+/* Return whether r is a currency symbol. */
+UTF_API bool utf_iscurrency(utf_rune r);
+
+/* Return whether r is a mathematics symbol. */
+UTF_API bool utf_ismath(utf_rune r);
+
 /* Return whether r is a hex digit. */
 UTF_API bool utf_isxdigit(utf_rune r);
+
+
+/*
+ * Encoding functions
+ */
+
+/* Convert a single rune to its corresponding word. */
+UTF_API int utf_encoderune_r(char* dest restrict, utf_rune* src restrict,
+                             utf_state_p state);
+UTF_API int utf_encoderune(char* dest restrict, utf_rune* src restrict);
+
+/* Copy from src to dest one byte at a time. */
+UTF_API int utf_utfsrtombs(char* dest, const utf_rune* src);
+
+/* Copy up to n bytes from src to dest one byte at a time. */
+UTF_API int utf_utfsnrtombs(char* dest, const utf_rune* src, size_t n);
+
+
+/*
+ * Decoding functions
+ */
+
+/* Convert a single word to its corresponding UTF rune. */
+UTF_API int utf_decoderune_r(utf_rune* dest restrict, char* src restrict,
+                             int len, utf_state_p state);
+UTF_API int utf_decoderune(utf_rune* dest restrict, char* src restrict,
+                           int len);
+
+/* Copy from src to dest one rune at a time. */
+UTF_API int utf_mbsrtoufs(utf_rune* dest, const char* src);
+
+/* Copy up to n runes from src to dest one rune at a time. */
+UTF_API int utf_mbsnrtoufs(utf_rune* dest, const char* src, size_t n);
+
+
+/*
+ * Transformation functions
+ */
 
 /* If r is a letter, return its lower-case version, if one exists. */
 UTF_API utf_rune utf_tolower(utf_rune r);
 
 /* If r is a letter, return its upper-case version, if one exists. */
 UTF_API utf_rune utf_toupper(utf_rune r);
+
+/* If r is a letter, return its title-case version, if one exists. */
+UTF_API utf_rune utf_totitle(utf_rune r);
+
+/* Return whether r is a numeric rune with a value. */
+UTF_API bool utf_hasvalue(utf_rune r);
+
+/* Return the integer value of r. */
+UTF_API int utf_intvalue(utf_rune r);
+
+/* Return the floating-point value of r. */
+UTF_API double utf_valueof(utf_rune r);
 
 
 /*

@@ -126,19 +126,68 @@ int rune_cmp(const void* a, const void* b)
     return (int)(*rune_a - *rune_b);
 }
 
-bool utf_isalpha(utf_rune r)
+#define UTF_UCD_MATCH_FN(fn_name,array_name)                                   \
+bool fn_name(utf_rune r)                                                       \
+{                                                                              \
+    static const size_t num_runes = sizeof((array_name)) / sizeof(utf_rune);   \
+    utf_rune* match = (utf_rune*)bsearch(                                      \
+            &r,                                                                \
+            (array_name),                                                      \
+            num_runes,                                                         \
+            sizeof(utf_rune),                                                  \
+            rune_cmp);                                                         \
+                                                                               \
+    if (match && *match == r) {                                                \
+        return true;                                                           \
+    }                                                                          \
+                                                                               \
+    return false;                                                              \
+}
+
+UTF_UCD_MATCH_FN(utf_isalpha, utf_ucd_alphabetic)
+
+UTF_UCD_MATCH_FN(utf_iscntrl, utf_ucd_control)
+
+UTF_UCD_MATCH_FN(utf_isdigit, utf_ucd_digit)
+
+bool utf_isalnum(utf_rune r)
 {
-    static const size_t num_runes = sizeof(utf_alphabetic) / sizeof(utf_rune);
-    utf_rune* match = (utf_rune*)bsearch(
-            &r,
-            utf_alphabetic,
-            num_runes,
-            sizeof(utf_rune),
-            rune_cmp);
+    return utf_isalpha(r) || utf_isdigit(r);
+}
 
-    if (match && *match == r) {
-        return true;
-    }
+UTF_UCD_MATCH_FN(utf_isnumber, utf_ucd_numeric)
 
-    return false;
+UTF_UCD_MATCH_FN(utf_isinteger, utf_ucd_integer)
+
+UTF_UCD_MATCH_FN(utf_islower, utf_ucd_lowercase)
+
+UTF_UCD_MATCH_FN(utf_isprint, utf_ucd_printable)
+
+UTF_UCD_MATCH_FN(utf_ispunct, utf_ucd_punctuation)
+
+UTF_UCD_MATCH_FN(utf_isblank, utf_ucd_blank)
+
+UTF_UCD_MATCH_FN(utf_isspace, utf_ucd_space)
+
+bool utf_isgraph(utf_rune r)
+{
+    return utf_isprint(r) && !utf_isspace(r);
+}
+
+UTF_UCD_MATCH_FN(utf_isupper, utf_ucd_uppercase)
+
+UTF_UCD_MATCH_FN(utf_istitle, utf_ucd_titlecase)
+
+UTF_UCD_MATCH_FN(utf_issymbol, utf_ucd_symbol)
+
+UTF_UCD_MATCH_FN(utf_iscurrency, utf_ucd_currency)
+
+UTF_UCD_MATCH_FN(utf_ismath, utf_ucd_mathematic)
+
+bool utf_isxdigit(utf_rune r)
+{
+    return
+        (r >= '0' && r <= '9') ||
+        (r >= 'A' && r <= 'F') ||
+        (r >= 'a' && r <= 'f');
 }

@@ -3,7 +3,7 @@ CUR_LIST_DIR     := $(patsubst %/,%,$(dir $(lastword $(MAKEFILE_LIST))))
 -include $(EXT_SRCDIR)/unity.mk
 LIST_DIR     := $(CUR_LIST_DIR)
 
-TEST_SRCS    := test_decode.c test_properties.c
+TEST_SRCS    := test_decode.c test_encode.c test_properties.c
 
 TEST_SRCS    := $(addprefix $(LIST_DIR)/,$(TEST_SRCS))
 TEST_OBJS    := $(addprefix $(OBJDIR)/,$(TEST_SRCS:.c=.o))
@@ -27,6 +27,10 @@ $(TEST_BINS): LINKFLAGS += -L. -l$(NAME)
 $(TEST_BINS): $(TESTDEP_OBJS) $(UNITY_OBJS) | $(TEST_OBJDIR)
 
 $(TEST_OBJDIR)/test_decode$(EXEEXT): $(TEST_OBJDIR)/test_decode.o
+	$(CC) $(CFLAGS) $(LINKFLAGS) -pie -rdynamic -o $@ $< \
+		$(TESTDEP_OBJS) $(UNITY_OBJS)
+
+$(TEST_OBJDIR)/test_encode$(EXEEXT): $(TEST_OBJDIR)/test_encode.o
 	$(CC) $(CFLAGS) $(LINKFLAGS) -pie -rdynamic -o $@ $< \
 		$(TESTDEP_OBJS) $(UNITY_OBJS)
 

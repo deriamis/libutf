@@ -51,14 +51,15 @@ use constant {
     ALPHA => "alphabetic",
     CNTRL => "control",
     SPACE => "space",
+    BLANK => "blank",
     DIGIT => "digit",
     NUMBR => "numeric",
+    INTGR => "integer",
     LOWER => "lowercase",
     UPPER => "uppercase",
     TITLE => "titlecase",
     PUNCT => "punctuation",
     PRINT => "printable",
-    GRAPH => "graphic",
     CRNCY => "currency",
     MATHS => "mathematic",
     SYMBL => "symbol",
@@ -200,57 +201,74 @@ while (my $line = <$fh>) {
             $is_range = 0;
         }
 
-        if ($category =~ /^(?:C.?|Z(?:l|p))$/) {
+       if ($category =~ /^(?:C.?|Z(?:l|p))$/) {
             # Don't classify internal UTF control codes
-            if ($category =~ /^(?:Cc|Z)$/) {
+            if ($category =~ /^(?:C(?:c|f|s)|Z)$/) {
                 push @$char_classes, CNTRL;
             }
 
-            if ($category =~ /^Z/) {
+            # Per the C standard
+            if ($code == 9) {
+                push @$char_classes, BLANK;
+            }
+
+            # Per the C standard
+            if ($code >= 9 && $code <= 13) {
                 push @$char_classes, SPACE;
             }
+
         } else {
             push @$char_classes, PRINT;
 
-            if ($bidi_class =~ /(?:W?S)|B/) {
+            if ($bidi_class =~ /^E(?:S|T)$/) {
+                # (W)hite(S)pace, (S)pace, or (B)lank
+                push @$char_classes, PUNCT;
+            }
+
+            if ($bidi_class =~ /^(?:(?:W?S)|B)$/) {
                 # (W)hite(S)pace, (S)pace, or (B)lank
                 push @$char_classes, SPACE;
+                push @$char_classes, BLANK;
+            }
+
+            if ($category =~ /^Z/) {
+                if ($category eq "Zs") {
+                    push @$char_classes, SPACE;
+                }
+                push @$char_classes, BLANK;
 
             } elsif ($category =~ /^L/) {
-                push @$char_classes, ALPHA;
+               push @$char_classes, ALPHA;
 
-                if ($category eq "Lu") {
-                    push @$char_classes, UPPER;
-                    $case_map->{lower} = $lc_mapping;
-                    if ($tc_mapping eq '') {
-                        $case_map->{title} = $code;
-                    } else {
-                        $case_map->{title} = ($tc_mapping ne '') ? $tc_mapping : undef;
-                    }
-                } elsif ($category eq "Ll") {
-                    push @$char_classes, LOWER;
-                    $case_map->{upper} = $uc_mapping;
-                    if ($tc_mapping eq '') {
-                        $case_map->{title} = ($uc_mapping ne '') ? $uc_mapping : undef;
-                    } else {
-                        $case_map->{title} = $tc_mapping;
-                    }
-                } elsif ($category eq "Lt") {
-                    push @$char_classes, TITLE;
-                    $case_map->{lower} = ($lc_mapping ne '') ? $lc_mapping : undef;
-                    $case_map->{upper} = ($uc_mapping ne '') ? $uc_mapping : undef;
-                }
+               if ($category eq "Lu") {
+                   push @$char_classes, UPPER;
+                   $case_map->{lower} = ($lc_mapping ne '') ? $lc_mapping : $code;
+                   $case_map->{title} = ($tc_mapping ne '') ? $tc_mapping : $code;
+               } elsif ($category eq "Ll") {
+                   push @$char_classes, LOWER;
+                   $case_map->{upper} = ($uc_mapping ne '') ? $uc_mapping : $code;
+                   $case_map->{title} = ($tc_mapping ne '') ? $tc_mapping : $code;
+               } elsif ($category eq "Lt") {
+                   push @$char_classes, TITLE;
+                   $case_map->{lower} = ($lc_mapping ne '') ? $lc_mapping : $code;
+                   $case_map->{upper} = ($uc_mapping ne '') ? $uc_mapping : $code;
+               }
+
+            } elsif ($category =~ /^M/) {
+                next;
 
             } elsif ($category =~ /^N/) {
+                push @$char_classes, NUMBR;
+
                 if ($category eq "Nd") {
                     push @$char_classes, DIGIT;
-                    push @$char_classes, NUMBR;
+                    push @$char_classes, INTGR;
                     $value = $digit_value;
                 } else {
-                    push @$char_classes, NUMBR;
                     if ($num_value ne '') {
                         $value = $compartment->reval($num_value);
                     } else {
+                        push @$char_classes, INTGR;
                         $value = int($dec_value);
                     }
                 }
@@ -260,13 +278,16 @@ while (my $line = <$fh>) {
             } elsif ($category =~ /^S/) {
                 push @$char_classes, SYMBL;
 
+                if ($bidi_class =~ /^ON$/) {
+                    # (W)hite(S)pace, (S)pace, or (B)lank
+                    push @$char_classes, PUNCT;
+                }
+
                 if ($category eq "Sm") {
                     push @$char_classes, MATHS;
                 } elsif ($category eq "Sc") {
                     push @$char_classes, CRNCY;
                 }
-            } else {
-                push @$char_classes, GRAPH;
             }
         }
 
@@ -369,8 +390,8 @@ open my $header_file, '>', 'src/ucd.h';
     for my $parse_class (sort keys %$parse_classes) {
         my $num_runes = scalar @{$parse_classes->{$parse_class}};
 
-        print $c_file "const utf_rune utf_${parse_class}" . "[$num_runes] = {";
-        print $header_file "extern const utf_rune utf_${parse_class}" . "[$num_runes];\n";
+        print $c_file "const utf_rune utf_ucd_${parse_class}" . "[$num_runes] = {";
+        print $header_file "extern const utf_rune utf_ucd_${parse_class}" . "[$num_runes];\n";
 
         my $index = 0;
         for my $code (@{$parse_classes->{$parse_class}}) {
